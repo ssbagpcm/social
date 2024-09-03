@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        h1, h2 {
+            color: #4CAF50;
+        }
+        form {
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        input {
+            display: block;
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #3a3a3a;
+            color: #f0f0f0;
+        }
+        button {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        .logout-btn {
+            background-color: #f44336;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+        .friend-request, .friend {
+            background-color: #3a3a3a;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Profil</h1>
+    
+    {% if friend_requests %}
+    <div class="notification">{{ friend_requests|length }}</div>
+    {% endif %}
+
+    <h2>Vos réponses</h2>
+    <form method="POST" action="{{ url_for('update_answers') }}">
+        {% for question, answer in answers.items() %}
+        <div>
+            <label>{{ question }}</label>
+            <input type="text" name="{{ question }}" value="{{ answer }}">
+        </div>
+        {% endfor %}
+        <button type="submit">Mettre à jour les réponses</button>
+    </form>
+
+    <h2>Utilisateurs similaires</h2>
+    <ul>
+    {% for user, similarity in similar_users %}
+        {% if user not in friends %}
+            <li>
+                {{ user }} ({{ similarity|round(2) }}% de réponses en commun)
+                <a href="{{ url_for('send_friend_request', username=user) }}">Envoyer une demande d'ami</a>
+            </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+
+    <h2>Demandes d'ami</h2>
+    <ul>
+    {% for user in friend_requests %}
+        <li class="friend-request">
+            {{ user }}
+            <a href="{{ url_for('accept_friend_request', username=user) }}">Accepter</a>
+        </li>
+    {% endfor %}
+    </ul>
+
+    <h2>Amis</h2>
+    <ul>
+    {% for friend in friends %}
+        <li class="friend">
+            {{ friend }}
+            <a href="{{ url_for('chat', username=friend) }}">Chatter</a>
+        </li>
+    {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('main') }}">Retour aux questions</a>
+    <a href="{{ url_for('chat_list') }}">Voir tous mes amis</a>
+    <form action="{{ url_for('logout') }}" method="POST">
+        <button type="submit" class="logout-btn">Déconnexion</button>
+    </form>
+</body>
+</html>

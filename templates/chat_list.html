@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des amis pour chatter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #2a2a2a;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background-color: #3a3a3a;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        a:hover {
+            background-color: #4a4a4a;
+        }
+        .back-link {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mes amis</h1>
+    <ul>
+    {% for friend in friends %}
+        <li>
+            {{ friend }}
+            <a href="{{ url_for('chat', username=friend) }}">Chatter</a>
+        </li>
+    {% endfor %}
+    </ul>
+    <a href="{{ url_for('profile') }}" class="back-link">Retour au profil</a>
+</body>
+</html>

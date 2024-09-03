@@ -1,0 +1,640 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>findyourfriends</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+    
+      :root {
+        --bg-color: #0a0a0a;
+        --text-color: #f0f0f0;
+        --card-bg: #1a1a1a;
+        --shadow-color: #000000;
+        --highlight-color: #2a2a2a;
+        --green-gradient: linear-gradient(to left, 
+          rgba(0,77,0,0), 
+          rgba(0,128,0,0.3), 
+          rgba(0,179,0,0.5), 
+          rgba(0,230,0,0.7), 
+          rgba(26,255,26,0.9), 
+          rgba(102,255,102,1), 
+          rgba(0,255,128,1), 
+          rgba(0,255,255,1));
+        --red-gradient: linear-gradient(to right, 
+          rgba(77,0,0,0), 
+          rgba(179,0,0,0.3), 
+          rgba(230,0,0,0.5), 
+          rgba(255,26,26,0.7), 
+          rgba(255,102,0,0.9), 
+          rgba(255,128,0,1), 
+          rgba(255,165,0,1), 
+          rgba(255,255,0,1));
+      }
+    
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: var(--bg-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        perspective: 1000px;
+        transition: background 0.8s ease;
+        user-select: none;
+      }
+    
+      .container {
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+    
+      h1 {
+        color: var(--text-color);
+        margin-bottom: 30px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      }
+    
+      .question-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 40px 30px;
+        margin-bottom: 20px;
+        cursor: grab;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 
+          0 10px 30px rgba(0, 0, 0, 0.5),
+          0 15px 50px rgba(0, 0, 0, 0.3),
+          inset 0 -5px 15px rgba(255, 255, 255, 0.05),
+          inset 0 5px 15px rgba(0, 0, 0, 0.3);
+        transform-style: preserve-3d;
+        transform: rotateX(10deg) rotateY(0deg);
+      }
+    
+      .question-card:before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 80%);
+        transform: rotate(45deg);
+        pointer-events: none;
+      }
+    
+      .question-text {
+        font-size: 28px;
+        color: var(--text-color);
+        line-height: 1.4;
+        z-index: 1;
+        font-weight: 400;
+        transition: all 0.3s ease;
+        transform: translateZ(50px);
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      }
+    
+      .answer-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0) translateZ(100px);
+        font-size: 100px;
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 2;
+        opacity: 0;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      }
+    
+      .question-card.swiped-left {
+        transform: translateX(-150px) rotate(-20deg) scale(0.9);
+        background: var(--red-gradient);
+        box-shadow: 
+          0 20px 40px rgba(139, 0, 0, 0.4),
+          0 15px 20px rgba(255, 0, 0, 0.3),
+          inset 0 -5px 15px rgba(255, 255, 255, 0.2),
+          inset 0 5px 15px rgba(139, 0, 0, 0.4);
+      }
+    
+      .question-card.swiped-right {
+        transform: translateX(150px) rotate(20deg) scale(0.9);
+        background: var(--green-gradient);
+        box-shadow: 
+          0 20px 40px rgba(0, 100, 0, 0.4),
+          0 15px 20px rgba(0, 255, 0, 0.3),
+          inset 0 -5px 15px rgba(255, 255, 255, 0.2),
+          inset 0 5px 15px rgba(0, 100, 0, 0.4);
+      }
+    
+      .question-card.swiped-left .answer-icon.no,
+      .question-card.swiped-right .answer-icon.yes {
+        transform: translate(-50%, -50%) scale(1) translateZ(100px);
+        opacity: 1;
+      }
+    
+      .question-card.swiped-left .question-text,
+      .question-card.swiped-right .question-text {
+        opacity: 0;
+        transform: translateZ(50px) scale(0.8);
+      }
+    
+      .swipe-instruction {
+        font-size: 18px;
+        color: var(--text-color);
+        margin-top: 30px;
+        font-weight: 300;
+        opacity: 0.8;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      }
+    
+      .background-effect {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 60%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        pointer-events: none;
+        z-index: 0;
+        mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+        -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+      }
+    
+      .background-effect.active {
+        opacity: 1;
+      }
+    
+      .background-effect.yes {
+        background: var(--green-gradient);
+      }
+    
+      .background-effect.no {
+        left: 0;
+        right: auto;
+        background: var(--red-gradient);
+        mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+        -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+      }
+    
+      .emoji-indicator {
+        position: fixed;
+        font-size: 48px;
+        opacity: 0.15;
+        filter: blur(2px);
+        pointer-events: none;
+        z-index: 2;
+        transition: all 0.3s ease;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    
+      .emoji-indicator.left {
+        left: 40px;
+      }
+    
+      .emoji-indicator.right {
+        right: 40px;
+      }
+    
+      .emoji-indicator.visible {
+        opacity: 0.7;
+        filter: blur(0);
+      }
+    
+      .emoji-cloud {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 3;
+        overflow: hidden;
+      }
+    
+      .floating-emoji {
+        position: absolute;
+        font-size: 24px;
+        opacity: 0;
+        animation: floatUpFast 1.5s ease-out forwards;
+      }
+    
+      @keyframes floatUpFast {
+        0% {
+          opacity: 1;
+          transform: translateY(0) scale(0.5);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100vh) scale(1.5);
+        }
+      }
+    
+      .completion-message {
+        font-size: 28px;
+        color: var(--text-color);
+        padding: 40px 20px;
+        font-weight: 600;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 2s ease;
+        animation: fadeInOut 4s infinite;
+      }
+    
+      @keyframes fadeInOut {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 1; }
+      }
+
+      .profile-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        z-index: 1000;
+      }
+
+      .profile-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      }
+    </style>
+</head>
+<body>
+    <div class="background-effect"></div>
+    <a href="{{ url_for('profile') }}" class="profile-button">Profil</a>
+    <div class="container">
+      <div id="question-container"></div>
+    </div>
+    
+    <div class="emoji-indicator left">❌</div>
+    <div class="emoji-indicator right">✅</div>
+    
+    <div class="emoji-cloud"></div>
+    
+    <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
+    <script>
+    const questions = [
+      "Aimes-tu voyager ?",
+      "Préféres-tu la ville à la campagne ?",
+      "As-tu déjà sauté en parachute ?",
+      "Aimerais-tu apprendre une nouvelle langue ?",
+      "Crois-tu en la vie extraterrestre ?",
+      "Aimes-tu les jeux de stratégie en temps réel ?",
+      "Aimes-tu la science ?",
+"Aimes-tu la cuisine ?",
+"Aimes-tu les jeux vidéo ?",
+"Aimes-tu les voyages ?",
+"Aimes-tu la musique ?",
+"Aimes-tu le sport ?",
+"Aimes-tu les films d'action ?",
+"Aimes-tu les livres de science-fiction ?",
+"Aimes-tu les animaux ?",
+"Aimes-tu les mathématiques ?",
+"Aimes-tu la biologie ?",
+"Aimes-tu les sciences sociales ?",
+"Aimes-tu l'astronomie ?",
+"Aimes-tu l'histoire ?",
+"Aimes-tu la géographie ?",
+"Aimes-tu les arts plastiques ?",
+"Aimes-tu le cinéma ?",
+"Aimes-tu les séries TV ?",
+"Aimes-tu la photographie ?",
+"Aimes-tu les voitures ?",
+"Aimes-tu la mode ?",
+"Aimes-tu le design ?",
+"Aimes-tu les documentaires ?",
+"Aimes-tu les sciences politiques ?",
+"Aimes-tu les jeux de société ?",
+"Aimes-tu le yoga ?",
+"Aimes-tu les sports extrêmes ?",
+"Aimes-tu les arts martiaux ?",
+"Aimes-tu le football ?",
+"Aimes-tu le basketball ?",
+"Aimes-tu le tennis ?",
+"Aimes-tu le volleyball ?",
+"Aimes-tu la natation ?",
+"Aimes-tu le cyclisme ?",
+"Aimes-tu le rugby ?",
+"Aimes-tu les randonnées ?",
+"Aimes-tu le ski ?",
+"Aimes-tu le surf ?",
+"Aimes-tu le skate ?",
+"Aimes-tu les voyages en avion ?",
+"Aimes-tu les croisières ?",
+"Aimes-tu les pique-niques ?",
+"Aimes-tu les sorties au cinéma ?",
+"Aimes-tu les concerts ?",
+"Aimes-tu les musées ?",
+"Aimes-tu les parcs d'attractions ?",
+"Aimes-tu les zoos ?",
+"Aimes-tu les aquariums ?",
+"Aimes-tu le théâtre ?",
+"Aimes-tu les expositions d'art ?",
+"Aimes-tu les festivals de musique ?",
+"Aimes-tu les livres policiers ?",
+"Aimes-tu les romans d'amour ?",
+"Aimes-tu les thrillers ?",
+"Aimes-tu les bandes dessinées ?",
+"Aimes-tu les mangas ?",
+"Aimes-tu les documentaires animaliers ?",
+"Aimes-tu les sciences de la Terre ?",
+"Aimes-tu les débats politiques ?",
+"Aimes-tu la sociologie ?",
+"Aimes-tu la philosophie ?",
+"Aimes-tu l'architecture ?",
+"Aimes-tu la décoration intérieure ?",
+"Aimes-tu les puzzles ?",
+"Aimes-tu les casse-têtes ?",
+"Aimes-tu les jeux de cartes ?",
+"Aimes-tu les échecs ?",
+"Aimes-tu les sports d'équipe ?",
+"Aimes-tu les sports individuels ?",
+"Aimes-tu les jeux de rôle ?",
+"Aimes-tu la robotique ?",
+"Aimes-tu la programmation ?",
+"Aimes-tu les mathématiques appliquées ?",
+"Aimes-tu la chimie ?",
+"Aimes-tu les langues étrangères ?",
+"Aimes-tu les voyages culturels ?",
+"Aimes-tu la danse ?",
+"Aimes-tu le chant ?",
+"Aimes-tu les cours en ligne ?",
+"Aimes-tu les événements sportifs ?",
+"Aimes-tu les compétitions de jeux vidéo ?",
+"Aimes-tu les marathons ?",
+"Aimes-tu les festivals de cinéma ?",
+"Aimes-tu les ateliers créatifs ?",
+"Aimes-tu la cuisine internationale ?",
+"Aimes-tu les plats épicés ?",
+"Aimes-tu les desserts ?",
+"Aimes-tu le café ?",
+"Aimes-tu le thé ?",
+"Aimes-tu la cuisine rapide ?",
+"Aimes-tu les produits bio ?",
+"Aimes-tu les aliments végétariens ?",
+"Aimes-tu les boissons gazeuses ?",
+"Aimes-tu les smoothies ?",
+"Aimes-tu les jus de fruits frais ?",
+"Aimes-tu le chocolat ?",
+"Aimes-tu les glaces ?",
+"Aimes-tu les fruits exotiques ?",
+"Aimes-tu les légumes verts ?",
+"Aimes-tu le pain frais ?",
+"Aimes-tu les viennoiseries ?",
+"Aimes-tu les pizzas ?",
+"Aimes-tu les burgers ?",
+"Aimes-tu les plats faits maison ?",
+"Aimes-tu les pique-niques en plein air ?",
+"Aimes-tu les barbecues ?",
+"Aimes-tu les repas en famille ?",
+"Aimes-tu les repas entre amis ?",
+"Aimes-tu les soirées à thème ?",
+"Aimes-tu les fêtes d'anniversaire ?",
+"Aimes-tu les fêtes de fin d'année ?",
+"Aimes-tu les vacances d'été ?",
+"Aimes-tu les vacances d'hiver ?",
+"Aimes-tu les séjours à la montagne ?",
+"Aimes-tu les séjours à la plage ?",
+"Aimes-tu les villes historiques ?",
+"Aimes-tu les destinations exotiques ?",
+"Aimes-tu les road trips ?",
+"Aimes-tu les escapades de week-end ?",
+"Aimes-tu les voyages en sac à dos ?",
+"Aimes-tu les séjours tout compris ?",
+"Aimes-tu les auberges de jeunesse ?",
+"Aimes-tu les hôtels de luxe ?",
+"Aimes-tu les maisons d'hôtes ?",
+"Aimes-tu les campings ?",
+"Aimes-tu les randonnées en montagne ?",
+"Aimes-tu les balades en forêt ?",
+"Aimes-tu les promenades en ville ?",
+"Aimes-tu les marchés locaux ?",
+"Aimes-tu les soirées en ville ?",
+"Aimes-tu les journées à la campagne ?",
+"Aimes-tu les couchers de soleil ?",
+"Aimes-tu les levers de soleil ?",
+"Aimes-tu les nuits étoilées ?",
+"Aimes-tu les journées ensoleillées ?",
+"Aimes-tu les jours de pluie ?",
+"Aimes-tu les tempêtes de neige ?",
+"Aimes-tu les journées d'automne ?",
+"Aimes-tu les fleurs de printemps ?",
+"Aimes-tu les activités en extérieur ?",
+"Aimes-tu les activités en intérieur ?",
+"Aimes-tu les puzzles de 1000 pièces ?",
+"Aimes-tu les coloriages ?"
+
+    ];
+    
+    const questionContainer = document.getElementById('question-container');
+    const backgroundEffect = document.querySelector('.background-effect');
+    const leftEmoji = document.querySelector('.emoji-indicator.left');
+    const rightEmoji = document.querySelector('.emoji-indicator.right');
+    const emojiCloud = document.querySelector('.emoji-cloud');
+    let currentQuestionIndex = 0;
+    
+    function createQuestionCard(question) {
+      const card = document.createElement('div');
+      card.className = 'question-card';
+      card.innerHTML = `
+        <div class="question-text">${question}</div>
+        <div class="answer-icon no">❌</div>
+        <div class="answer-icon yes">✅</div>
+      `;
+      questionContainer.innerHTML = '';
+      questionContainer.appendChild(card);
+    
+      VanillaTilt.init(card, {
+        max: 15,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.5,
+      });
+    
+      const hammer = new Hammer(card);
+      let isDragging = false;
+      let startX = 0;
+    
+      hammer.on('panstart', (event) => {
+        isDragging = true;
+        startX = event.center.x;
+      });
+    
+      hammer.on('panmove', (event) => {
+        if (!isDragging) return;
+        const deltaX = event.center.x - startX;
+        const rotation = deltaX / 10;
+        card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+        updateBackgroundEffect(deltaX);
+        updateEmojiIndicators(deltaX);
+      });
+    
+      hammer.on('panend', (event) => {
+        isDragging = false;
+        const deltaX = event.center.x - startX;
+        if (Math.abs(deltaX) > 100) {
+          if (deltaX > 0) {
+            card.classList.add('swiped-right');
+            activateBackgroundEffect('yes');
+            createFloatingEmojis('✅');
+            saveAnswer(questions[currentQuestionIndex], 'yes');
+          } else {
+            card.classList.add('swiped-left');
+            activateBackgroundEffect('no');
+            createFloatingEmojis('❌');
+            saveAnswer(questions[currentQuestionIndex], 'no');
+          }
+          setTimeout(() => {
+            card.remove();
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+              createQuestionCard(questions[currentQuestionIndex]);
+            } else {
+              showCompletionMessage();
+              hideEmojiIndicators();
+            }
+            deactivateBackgroundEffect();
+            resetEmojiIndicators();
+          }, 1000);
+        } else {
+          card.style.transform = '';
+          deactivateBackgroundEffect();
+          resetEmojiIndicators();
+        }
+      });
+    
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    }
+    
+    function saveAnswer(question, answer) {
+      console.log('Envoi de la réponse au serveur:', question, answer);
+      fetch('/save_answer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question, answer }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.error('Erreur lors de la sauvegarde de la réponse:', data.error);
+        } else {
+          console.log('Réponse sauvegardée avec succès');
+        }
+      })
+      .catch((error) => {
+        console.error('Erreur:', error);
+      });
+    }
+    
+    function updateBackgroundEffect(deltaX) {
+      if (deltaX > 0) {
+        backgroundEffect.classList.add('yes');
+        backgroundEffect.classList.remove('no');
+      } else {
+        backgroundEffect.classList.add('no');
+        backgroundEffect.classList.remove('yes');
+      }
+      backgroundEffect.style.opacity = Math.abs(deltaX) / 500;
+    }
+    
+    function updateEmojiIndicators(deltaX) {
+      if (deltaX > 0) {
+        rightEmoji.classList.add('visible');
+        leftEmoji.classList.remove('visible');
+      } else if (deltaX < 0) {
+        leftEmoji.classList.add('visible');
+        rightEmoji.classList.remove('visible');
+      } else {
+        resetEmojiIndicators();
+      }
+    }
+    
+    function resetEmojiIndicators() {
+      leftEmoji.classList.remove('visible');
+      rightEmoji.classList.remove('visible');
+    }
+    
+    function hideEmojiIndicators() {
+      leftEmoji.style.display = 'none';
+      rightEmoji.style.display = 'none';
+    }
+    
+    function showCompletionMessage() {
+      const message = document.createElement('div');
+      message.className = 'completion-message';
+      message.textContent = "Toutes les questions ont été répondues, vous pouvez maintenant vous rendre sur votre profil en cliquant sur le bouton ci-dessus !";
+      questionContainer.appendChild(message);
+    }
+    
+    function activateBackgroundEffect(type) {
+      backgroundEffect.classList.add('active', type);
+    }
+    
+    function deactivateBackgroundEffect() {
+      backgroundEffect.classList.remove('active', 'yes', 'no');
+      backgroundEffect.style.opacity = 0;
+    }
+    
+    function createFloatingEmojis(emoji) {
+      for (let i = 0; i < 15; i++) {
+        const floatingEmoji = document.createElement('div');
+        floatingEmoji.className = 'floating-emoji';
+        floatingEmoji.textContent = emoji;
+        floatingEmoji.style.left = `${Math.random() * 100}%`;
+        floatingEmoji.style.top = `${Math.random() * 100}%`;
+        emojiCloud.appendChild(floatingEmoji);
+    
+        setTimeout(() => {
+          floatingEmoji.remove();
+        }, 1500);
+      }
+    }
+    
+    // Désactiver la sélection de texte
+    document.body.style.webkitUserSelect = 'none';
+    document.body.style.mozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+    document.body.style.userSelect = 'none';
+    
+    // Empêcher le comportement par défaut de sélection de texte
+    document.addEventListener('selectstart', function(e) {
+      e.preventDefault();
+    });
+    
+    createQuestionCard(questions[currentQuestionIndex]);
+    </script>
+</body>
+</html>
